@@ -1,0 +1,93 @@
+include ./components/head.pug
+body
+  .navBar
+    a.goBack(href="/" title="Go Back Home")
+      p
+    if(isTeacher)
+      form(name="editQuiz") 
+        button(type="submit") Edit
+      form(name="deleteQuiz") 
+        button(type="submit") Delete
+    b Time: 
+      u 10 Minutes
+  if data
+    .page
+      form(name="submitAns")
+        center 
+          b Start quiz of 
+            u #{data.subject||'subject.'}
+        table
+          tbody
+            each q, i in data.questions
+              tr
+                th(colspan="4")
+                  span.index #{i + 1}
+                  span #{q.questionText}
+              tr
+                each opt, j in q.options
+                  td #{opt.text}
+                    input(type="radio" name=`ans[${i+1}]` value=j+1 id=`q${i}a${j}` required)
+            tr 
+              td(colspan="4")
+                center#formBtnContainer
+                  button
+                  button#formBtn(type="submit") Submit Answers
+                  button
+    script.
+      const serverData  = !{JSON.stringify(data)};
+      const isTeacher  = "#{isTeacher}";
+      document.addEventListener("DOMContentLoaded", () => {
+        const id = "#{data._id}";
+        if(isTeacher==="true"){
+          document.forms.editQuiz.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append("data", JSON.stringify(serverData));
+            const entries = Object.fromEntries(formData.entries());
+            const res = await fetch(`/quiz/${serverData._id}`,{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
+            const result = await res.json();
+            if(result.success) window.location.href=`/admin/${serverData._id}`;
+          });
+          document.forms.deleteQuiz.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const res = await fetch(`/quiz/${id}`,{method: "DELETE",headers: {'Content-Type': 'application/json'}});
+            const result = await res.json();
+            if(result.success) window.location.href=`/`;
+          });
+        }
+        document.forms.submitAns.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const scoreBox = document.querySelectorAll("#formBtnContainer>button");
+          const formData = new FormData(e.target);
+          formData.append("id",id)
+          const entries = Object.fromEntries(formData.entries());
+          const res = await fetch('/submitAns',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
+          const result = await res.json();
+          const { correctAnswers, nextId, userAnswers, score } = result;
+          correctAnswers?.forEach((correctIndex, i) => {
+            for (let j = 0; j < 4; j++) {
+              const option = document.getElementById(`q${i}a${j}`);
+              const label = option.parentElement;
+              option.disabled = true;
+              if (j === correctIndex-1) {
+                label.style.cssText ="color:green;background:lightgreen;";
+                if (userAnswers[i] == correctIndex) label.style.cssText = "background:green;box-shadow:none;";
+              } else {label.style.cssText = "background:red;"};
+            }
+          });
+          if(score){
+            scoreBox[0].innerText = `Score: ${score}/${correctAnswers.length}`;
+            scoreBox[0].style="visibility: visible;";
+          } 
+          if(nextId!=null){
+            scoreBox[1].innerText = `Next quiz`;
+            scoreBox[1].type="button";
+            scoreBox[1].onclick=()=>{window.location.href=`/subject/${nextId}`;}
+          }else{ scoreBox[1].style="visibility: collapse;"; };
+          scoreBox[2].innerText = `Re-Try 🔁`;
+          scoreBox[2].style="visibility: visible;";
+          scoreBox[2].onclick=()=>{window.location.reload();}
+        });
+      });
+  else 
+    p No Data Found !

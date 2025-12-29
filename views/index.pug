@@ -1,0 +1,35 @@
+include ./components/head.pug
+body
+  header
+    .logo 
+      h1 #{title || "Home"}
+    if email 
+      p #{"Wellcome "+email.split("@")[0].toUpperCase()+"🖐" || "user"}
+    a#proIcon(href="/profile" title="Profile & Results") 👱‍♂️
+  main
+    include ./components/nav.pug
+    section 
+
+      if data
+        - const groups = {}
+        each item in data
+          - if (!groups[item.subject]) groups[item.subject] = []
+          - groups[item.subject].push(item)
+        center
+          h3.notice Please choese a subject.
+        .categoryItem
+          each items, subject in groups
+            .subjectBox
+              h3 #{subject} (#{items.length})
+              ul
+                each it in items
+                  a(href=`/subject/${it._id}`)
+                    li= it.subject
+                      p By: #{it.email ? it.email.split("@")[0].toUpperCase() : "USER"}
+      else 
+        .news 
+          center  
+            h3.notice News.
+          p Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aperiam, similique.
+            | Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, corporis.
+  include ./components/footer.pug

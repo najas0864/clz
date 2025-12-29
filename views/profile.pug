@@ -1,0 +1,70 @@
+include ./components/head.pug
+body
+  .profile
+    .headBar
+      a.goBack(href="/") 
+        p
+      if info 
+        h1 #{info.email.split("@")[0].toUpperCase()}
+      .outBtn 
+        if(isTeacher)
+          a(href="/admin")
+           button(type="submit") Create Question
+        form(action="/logout", method="post") 
+          button(type="submit") Log-Out
+    center
+      h2#rTitle Quiz History
+    .results 
+  script.
+    addEventListener("DOMContentLoaded",async () => {
+      const resultBox = document.querySelector('.results')
+      const title = document.querySelector('.rTitle')
+      const res = await fetch('/history')
+      const data = await res.json();
+      if(data.length === 0){
+        title.innerText = "No Quiz Taken Yet"
+        return;
+      }
+      data.forEach( a => {
+        resultBox.innerHTML+=`
+          <table>
+            <tr>
+              <th>Subject:</th>
+              <th> ${a.quizId?.subject}</th>
+            </tr>
+            <tr>
+              <th>Score:</th>
+              <th>${a.score}</th>
+            </tr>
+            <tr>
+              <th>Your Answers</th>
+              <td>${a.userAnswers}</td>
+            </tr>
+            <tr>
+              <th>Correct Answers</th>
+              <td>${a.correctAnswers}</td>
+            </tr>
+            <tr>
+              <th>Performed at</th>
+              <td>${a.createdAt.slice(2,10)} / ${a.createdAt.slice(12,19)}</td>
+            </tr>
+            <tr>
+              <th><button onclick="goToQuiz('${b=a.quizId}')">Try again</button></th>
+              <th>
+                <button type="submit" onclick="deleteResult('${a._id}')">Delete</button>
+              </th>
+            </tr>
+          </table>
+        `;
+      })
+      window.deleteResult = async (id) => {
+        const res = await fetch(`/result/${id}`, { method: 'DELETE' });
+        const result = await res.json();
+        document.querySelector(`button[onclick="deleteResult('${id}')"]`).closest('table').remove();
+      };
+      goToQuiz = async (id) =>{
+        console.log(id,data)
+        if (id) return alert("Quiz not found, it may have been removed by the teacher.");
+        window.location.href=`/subject/${id}`;
+      } 
+    })
