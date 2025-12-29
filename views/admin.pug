@@ -1,0 +1,86 @@
+include ./components/head.pug
+body
+  .headBar
+    a.goBack(href="/profile" title="Go Back to Profile Page") 
+      p
+    p Teacher's Admin Page
+  .boxCover
+    .box
+      form(action="/quiz" method="POST")
+        input#semester(type="number", name="semester" hidden)
+        select#subjects(name="subject" required autocomplete="off") 
+          option(value="" selected disabled) Select Subject below
+        each q in [...Array(10).keys()]
+          span
+            textarea(name=`q${q}_t` placeholder=`${q + 1} : Question` required)
+            each o in [...Array(4).keys()]
+              input(type="text" name=`q${q}_o${o}` placeholder=`Option ${o + 1}` required)
+            select(name=`q${q}_c` required autocomplete="off") 
+              option(value="" selected disabled) ✔
+              option(value="1") 1
+              option(value="2") 2
+              option(value="3") 3
+              option(value="4") 4
+        button(id="btn" type="submit") Upload Quiz
+  script.
+    const subjectArr = [
+      ["Mathematics-I","Society and Technology","Digital Logic","English I","Computer Fundamentals & Applications"],
+      ["Mathematics-II","C Programming","Financial Accounting","English II","Microprocessor and Computer Architecture"],
+      ["Data Structures and Algorithms","Probability and Statistics","System Analysis and Design","OOP in Java","Web Technology"],
+      ["Operating System","Numerical Methods","Software Engineering","Scripting Language","Database Management System"],
+      ["MIS and E-Business","DotNet Technology","Computer Networking","Introduction to Management","Computer Graphics and Animation"],
+      ["Mobile Programming","Distributed System","Applied Economics","Advanced Java Programming","Network Programming"],
+      ["Cyber Law and Professional Ethics","Cloud Computing","Internship","Elective I","Elective II"],
+      ["Operational Research","Elective III","Elective IV"]
+    ];
+    document.addEventListener("DOMContentLoaded", () => {
+      let subjects = document.getElementById("subjects");
+      let semester = document.getElementById("semester");
+      const serverData  = !{JSON.stringify(data)};
+      if (serverData) {
+        document.getElementById("btn").textContent = "Update Quiz";
+        semester.value = serverData.semester;
+        const option = document.createElement("option");
+        option.value = serverData.subject;
+        option.textContent = serverData?.subject;
+        option.selected = true;
+        subjects.appendChild(option);
+        serverData.questions.forEach((q, i) => {
+          document.querySelector(`[name="q${i}_t"]`).value = q.questionText;
+          q.options.forEach((opt, j) => {
+            document.querySelector(`[name="q${i}_o${j}"]`).value = opt.text;
+          });
+          document.querySelector(`[name="q${i}_c"]`).value = q.correctIndex;
+        });
+      };
+      document.forms[0].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const datas = e.target;
+        const entries = Object.fromEntries(new FormData(datas).entries());
+        const res = await fetch(serverData?`/quiz/${serverData._id}`:`/quiz`,{
+          method: serverData?"PUT":"POST",
+          headers: {'Content-Type': 'application/json'},
+          body:JSON.stringify(entries)
+        });
+        const result = await res.json();
+        if(result.success){
+          document.forms[0].reset();
+          window.location.href=`/subject/${serverData._id||result.id}`;
+        }else{
+          //- popup error message
+        }
+      });
+      subjectArr.forEach((subj,i) => {
+        subj.forEach(subject => {
+          let option = document.createElement("option");
+          option.value = subject;
+          option.dataset.sem = i + 1
+          option.textContent = subject;
+          subjects.appendChild(option);
+        });
+      });
+      subjects.addEventListener("change",async e=>{
+        const selected = e.target.selectedOptions[0].dataset.sem;
+        semester.value = selected;
+      })
+    });

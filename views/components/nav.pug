@@ -1,0 +1,9 @@
+nav
+    h3 Semesters
+    ul
+        if sem 
+            each s in sem 
+                a(href=`/semester/${s}`)   
+                    li=(s)
+                        sup st&nbsp;&nbsp;
+                        | sem

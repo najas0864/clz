@@ -1,0 +1,76 @@
+include ./components/head.pug
+body
+  .formBox
+    .formContainer
+      form#login.authForm
+        center
+          h3 Log-In
+        label(for="email") Email:
+        input#email(required="" name="email" type="text" autoComplete="username")
+        label(for="password") Password:
+        input#password(required="" name="password" type="password" autoComplete="current-password")
+        button(type="submit") Login
+        span
+          | Dont have an account?
+          br
+          a#links(href="#register") Create new account
+      form#register.authForm
+        center
+          h3 Create new account
+        label(for="newemail") Email:
+        input#newemail(required="" name="email" type="text" autoComplete="username")
+        label(for="newPassword") New Password:
+        input#newPassword( required="" name="password" type="password" autoComplete="new-password")
+        select#role(required="" name="role")
+          option(value="" selected disabled) Select your role
+          option(value="student") Student
+          option(value="teacher") Teacher
+        button(type="submit") Register
+        span
+          | Already have an account?
+          a#links(href="#login") Login
+    .forgetPass
+      a(href="/resetPassword") Forget password?
+  script.
+    addEventListener('DOMContentLoaded', async()=>{
+      document.forms[0].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const entries = Object.fromEntries(formData.entries());
+        const res = await fetch('/logIn',{
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body:JSON.stringify(entries)
+        });
+        const logResult = await res.json();
+        const {success,message} = logResult;
+        let popUp = document.createElement("span")
+        popUp.innerText=message;
+        popUp.classList.add("message", "active");
+        (!success)? document.body.append(popUp):window.location.href = "/";
+        setTimeout(() => { popUp.remove() }, 3000);
+      });
+      document.forms[1].addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const entries = Object.fromEntries(formData.entries());
+        const res = await fetch('/signUp',{
+            method: "POST",
+            headers: {'Content-Type': 'application/json'},
+            body:JSON.stringify(entries)
+        });
+        const logResult = await res.json();
+        const {success,message} = logResult;
+        let popUp = document.createElement("span")
+        popUp.innerText=message;
+        popUp.classList.add("message", "active");
+        (!success)? document.body.append(popUp):window.location.href = "/";
+        setTimeout(() => { popUp.remove() }, 3000);
+      });
+      let formContainer = document.querySelector(".formContainer");
+      document.onclick = (e) => e.target.classList.contains("myPop")?document.querySelector(".myPop").classList.remove("active"):null;
+      document.querySelectorAll("#links").forEach(tooggle => tooggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        tooggle.getAttribute("href") === "#register"?formContainer.style.transform = "translateX(-50%)":formContainer.style.transform = "translateX(0)";
+      }));
+    })
