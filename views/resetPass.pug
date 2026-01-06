@@ -40,9 +40,15 @@ body
       rePassBtn.style="display:none;";
       let otp = document.getElementById("otp");
       otp.readOnly = true;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,12}$/;
 
       document.forms.getOtp.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (!emailRegex.test(reEmail.value.trim())) {
+          showMsg(false, "Enter a valid email");
+          return;
+        }
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
         const res = await fetch('/getOtp',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
@@ -81,6 +87,10 @@ body
       });
       document.forms.updatePass.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (!passwordRegex.test(rPass.value.trim())) {
+          showMsg(false, "Enter a valid password\nPassword must be\n-> 6-12 chars\n-> 1 uppercase\n -> 1 number\n -> 1 special char");
+          return;
+        }
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
         const res = await fetch('/updatePassword',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
