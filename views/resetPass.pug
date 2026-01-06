@@ -20,33 +20,36 @@ body
       a(href="/") Go Back To Log-In
   script.
     document.addEventListener('DOMContentLoaded',()=>{
+      function showMsg(success, message) {
+        let popUp = document.createElement("span")
+        popUp.innerText=message;
+        popUp.classList.add("message");
+        setTimeout(() => { popUp.remove() }, 3000);
+        (!success)? document.body.append(popUp):window.location.href = "/index";
+      }
       let existingEmail = document.getElementById("existingEmail");
       let passEmail = document.getElementById("passEmail");
-      let newPass = document.getElementById("newPass");
       let reEmail = document.getElementById("reEmail");
       let getOtpBtn = document.getElementById("getOtp");
-      let verifyOtpBtn = document.getElementById("verifyOtp");
-      let rePassBtn = document.getElementById("resetPass");
-      let otp = document.getElementById("otp");
-      verifyOtpBtn.style="display:none;";
-      rePassBtn.style="display:none;";
+
+      let newPass = document.getElementById("newPass");
       newPass.readOnly = true;
+      let verifyOtpBtn = document.getElementById("verifyOtp");
+      verifyOtpBtn.style="display:none;";
+      let rePassBtn = document.getElementById("resetPass");
+      rePassBtn.style="display:none;";
+      let otp = document.getElementById("otp");
       otp.readOnly = true;
-      document.forms[0].addEventListener("submit", async (e) => {
+
+      document.forms.getOtp.addEventListener("submit", async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
-        const res = await fetch('/getOtp',{
-          method: "POST",
-          headers: {'Content-Type': 'application/json'},
-          body:JSON.stringify(entries)
-        });
+        const res = await fetch('/getOtp',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
         const logResult = await res.json();
         const {success,message,email} = logResult;
-        let p = document.createElement("p")
-        p.innerText=message;
-        p.classList.add("message", "active");
         if(success){
+          otp.focus();
           existingEmail.value=email;
           existingEmail.readOnly = true;
           otp.readOnly = false;
@@ -54,58 +57,42 @@ body
           passEmail.value=email;
           verifyOtpBtn.style="display:block;";
           getOtpBtn.style="display:none;";
-          document.body.append(p);
-        } else{
-          document.body.append(p);
-        } 
+          showMsg(false, message)
+        }else{
+          showMsg(success, message)
+        }
       });
-      document.forms[1].addEventListener("submit", async (e) => {
+      document.forms.verifyOtp.addEventListener("submit", async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
-        const res = await fetch('/verifyOtp',{
-          method: "POST",
-          headers: {'Content-Type': 'application/json'},
-          body:JSON.stringify(entries)
-        });
+        const res = await fetch('/verifyOtp',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
         const logResult = await res.json();
         const {message,success} = logResult;
-        let p = document.createElement("p")
-        p.innerText=message;
-        p.classList.add("message", "active");
         if(success){
           rePassBtn.style="display:block;";
           otp.readOnly = true;
           newPass.readOnly = false;
           verifyOtpBtn.style="display:none;";
-        } else{
-          p.innerText=message;
-          document.body.append(p);
+          showMsg(false, message);
+        }else{
+          showMsg(success, message);
         }
       });
-      document.forms[2].addEventListener("submit", async (e) => {
+      document.forms.updatePass.addEventListener("submit", async (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
-        const res = await fetch('/updatePassword',{
-          method: "POST",
-          headers: {'Content-Type': 'application/json'},
-          body:JSON.stringify(entries)
-        });
+        const res = await fetch('/updatePassword',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
         const logResult = await res.json();
         const {message,success} = logResult;
-        let p = document.createElement("p")
-        p.innerText=message;
-        p.classList.add("message", "active");
         if(success){
           rePassBtn.type="button";
-          document.forms[2].reset();
+          document.forms.updatePass.reset();
           newPass.readOnly = true;
-          p.innerText=message;
-          document.body.append(p);
-          window.location.href="/";
-        } else{
-          document.body.append(p);
+          showMsg(success, message);
+        }else{
+          showMsg(success, message);
         }
       });
     })

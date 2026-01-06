@@ -1,0 +1,8 @@
+span.goBack
+    p
+script.
+    const goBack = document.querySelector('.goBack');
+    goBack.addEventListener('click', (e) => {
+      e.preventDefault();
+      history.back();
+    });

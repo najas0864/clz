@@ -20,7 +20,7 @@ body{
     display: flex;
     overflow: hidden;
     flex-direction: column;
-    background-image: url("data:image/svg+xml,<svg id='patternId' width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'><defs><pattern id='a' patternUnits='userSpaceOnUse' width='50' height='33.333' patternTransform='scale(1) rotate(0)'><rect x='0' y='0' width='100%' height='100%' fill='hsla(240,6.7%,17.6%,1)'/><path d='M25 .806v2.79h.8V.806Zm0 4.465v2.791h.8v-2.79Zm-2.043 3.902-2.32 1.55.444.665 2.32-1.55-.443-.665zm4.885 0-.444.665 2.32 1.55.445-.665zM-.4 10.61v2.79h.8v-2.79zm50 0v2.79h.8v-2.79zm-30.356 1.042-2.32 1.55.443.666 2.322-1.55-.444-.666zm12.311 0-.444.665 2.32 1.55.445-.664zm3.783 2.566-.444.666 2.321 1.55.444-.666zm-19.852.025-2.32 1.55.444.665 2.32-1.55zm-15.886.77v2.79h.8v-2.79Zm50 0v2.79h.8v-2.79Zm-50 4.465v2.79h.8v-2.79h-.8Zm50 0v2.79h.8v-2.79h-.8zM2.442 23.379l-.444.665 2.32 1.55.445-.665zm45.115 0-2.32 1.55.443.666 2.322-1.55-.444-.666zM6.155 25.86l-.444.665 2.32 1.55.445-.665zm37.69 0-2.322 1.55.444.665 2.321-1.55-.444-.666zM9.937 28.424l-.444.665 2.32 1.55.445-.665-2.321-1.55zm30.11.003-2.321 1.55.444.666 2.321-1.55zM25 29.737v2.79h.8v-2.79z'  stroke-width='1' stroke='none' fill='hsla(47,80.9%,61%,1)'/></pattern></defs><rect width='800%' height='800%' transform='translate(-100,-66.666)' fill='url(%23a)'/></svg>");
+    background: #213547;
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -50,6 +50,14 @@ main{
 section{
     padding: .3rem 0;overflow: auto;
 }
+.news{
+    padding: 1rem;
+    height: 100%;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
 .authForm{
     width: 200px;
 }
@@ -67,6 +75,9 @@ form input {
     border: none;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.6);
     border-radius: 4px;
+}
+.tog{
+    float: right;
 }
 button[type="submit"] {
     padding: 8px;
@@ -88,7 +99,7 @@ button[type="submit"]:hover{
     margin: auto;
     border-radius: 16px;
     backdrop-filter: blur(2px);
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 1);
     border: 1px solid rgba(255, 255, 255, 0.32);
 }
@@ -123,7 +134,7 @@ button[type="submit"]:hover{
     align-items: center;
     flex-direction: column;
     backdrop-filter: blur(2px);
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 1);
     border: 1px solid rgba(255, 255, 255, 0.32);
 }
@@ -139,6 +150,12 @@ button[type="submit"]:hover{
     border-radius: 14px;
     padding: 1rem 2rem;
     background: rgba(255, 255, 255, 0.1);
+}
+.subjectBox>h5{
+    position: sticky;
+    top: 0;
+    background: rgba(0, 0, 0, 1);
+    border-radius: 50px;
 }
 nav{
     display: flex;
@@ -183,11 +200,12 @@ header{
     height: 2rem;
     border-radius: 50%;
     text-align: center;
+    font-size: 20px;
     text-decoration: none;
     background-color: #8080807d;
     backdrop-filter: blur(2px);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 1);
-    line-height: 2;
+    line-height: 1.4;
 }
 #proIcon:hover{
     box-shadow: inset 0 0 10px #fff;
@@ -201,9 +219,45 @@ header{
     padding: .5rem 1rem;
 }
 .outBtn{
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+.outBtn svg.active{
+    transform: rotate(90deg);
+    transition: all 0.3s ease-in-out;
+}
+.outbtnDrop.active{
+    visibility: visible;
+    opacity: 1;
+}
+.outbtnDrop{
+    padding: .5rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: #8080804d;
+    backdrop-filter: blur(1px);
+    visibility: hidden;
+    z-index: 1;
+    opacity: 0;
+    transition: all 0.3s ease-in-out;
+}
+.dropGroup{
+    width: 12rem;
+    position: absolute;
+    right: 10%;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    top: 10%;
+    flex-direction: column;
+    gap: 1rem;
+    background: #404141;
+    padding: 1rem;
+    border-radius: 16px;
 }
 .boxCover{
     width: 100vw;
@@ -266,12 +320,10 @@ header{
     color: #80808000;
     text-shadow: none;
     padding: 0.3rem 1rem;
-}
-.message.active{
     bottom: 30px;
     background-color: gray;
     text-shadow: inherit;
-    color: #fff;
+    color: red;
 }
 .sem{
     width: 6rem;
@@ -289,61 +341,47 @@ header{
     justify-content: center;
     color: rgb(255, 255, 255);
     background-color: #8080807d;
-    transition: all 5s ease-in-out;
-    box-shadow: 0 5px 3px rgb(184 184 184),inset 0 5px 5px #000;
+    transition: all 0.3s ease-in-out;
 }
 .goBack:hover{
-    box-shadow: inset 0 5px 3px rgb(126 126 126), 0 5px 5px #000;
+    border: 2px solid #fff5;
     color: #fff;
 }
 .goBack p{
-    height: 4px;
+    height: 5px;
     z-index: 1;
     width: 1.5rem;
     background: #fff;
-    transition-delay: .3s;
-    border-radius: 0 50% 50% 0;
-    transition: box-shadow 5s ease-in-out;
+    border-radius: 1rem;
+    transition: all 0.3s ease-in-out;
     box-shadow: 0px 1px 5px #000;
 }
 .goBack:hover p{
     transform: translate(0, -7px);
     box-shadow: 0px 9px 5px #000;
 }
-.goBack p::after{
+.goBack p::before, .goBack p::after{
     content: '';
-    z-index: -1;
-    height: 2px;
-    width: 0.6rem;
-    border-radius: 0 50% 50% 0;
-    background: #fff;
-    border: 1px solid #fff;
-    box-shadow: 1px 1px 5px #000;
+    height: 5px;
+    width: 0.8rem;
     display: block;
+    background: #fff;
+    border-radius: 1rem;
     transition: all 0.5s ease-in-out;
-    transform: translate(-1px, -1px) rotate(45deg);
+}
+.goBack p::after{
+    transform: translate(-2px, -2px) rotate(45deg);
 }
 .goBack:hover p::after {
-    transform: translate(-1px, -1px) rotate(45deg);
+    transform: translate(-2px, -2px) rotate(45deg);
     box-shadow: 7px 3px 7px #000;
-
 }
-.goBack p::before {
-    content: '';
-    height: 2px;
-    width: 0.6rem;
-    display: block;
-    border-radius: 0 50% 50% 0;
-    box-shadow: 0px 1px 5px #000;
-    background: #fff;
-    border: 1px solid #fff;
-    transition: all 0.5s ease-in-out;
-    transform: translate(-1px, -3px) rotate(-45deg);
-
+.goBack p::before{
+    transform: translate(-2px, -4px) rotate(-45deg);
 }
 .goBack:hover p::before {
     box-shadow: 0 0 0 #000;
-    transform: translate(-1px, -3px) rotate(-45deg);
+    transform: translate(-2px, -4px) rotate(-45deg);
 }
 .navBar{
     display: flex;
@@ -427,11 +465,10 @@ header{
     padding: 1rem;
 }
 .results table th, .results table td{
-    border-radius: 14px;
-    padding: 5px 10px;
-    background: black;
-    box-shadow: 5px 10px 25px #000, inset 5px 5px 25px #fff;
-    border: 1px solid #fff;
+border-radius: 6px;
+    padding: 3px 5px;
+    background: #434343;
+    border: 2px solid #fff;
 }
 .notFoundContainer{
     margin-top: 50px;
@@ -450,19 +487,21 @@ footer{
     box-shadow: 0 4px 30px rgba(0, 0, 0, 1);
 }
 @media only screen and (max-width: 740px) {
+    .categoryItem{
+        justify-content: center;
+    }
     textarea {
         padding-bottom: 32px;
         padding-right: 32px;
         background-size: 28px;
     }
-}
-@media only screen and (max-width: 740px) {
     nav{
         height: 100%;
     }
     nav ul{
         flex-direction: column;
         overflow-y: scroll;
+        padding-right: 10px;
         width: fit-content;
         align-items: center;
     }

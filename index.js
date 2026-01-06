@@ -36,7 +36,10 @@ const authenticateToken = (req, res, next) => {
     });
 };
 // get routes ////////////////////////////////////////////////////////////////////////////////////////////////////
-app.get("/",authenticateToken, async(req,res)=>{
+app.get("/", async(req,res)=>{
+    res.render("dashbord",{title:"Dashboard"});
+});
+app.get("/index",authenticateToken, async(req,res)=>{
     const semesters = await Quiz.distinct("semester");
     res.render("index",{title:"Home", email: req.user.email, sem:semesters });
 });
@@ -88,7 +91,7 @@ app.get("/admin/:id",authenticateToken, async (req,res)=>{
     const quiz = await Quiz.findOne({ _id: req.params.id });
     const user = await User.findOne({ email: quiz.email });
     if (user.role !== 'teacher') return res.json({sucess:false, message: "Access denied. Teachers only." });
-    res.render("admin",{data:quiz, success:true});
+    res.render("admin",{data:quiz, success:true, title:"Update Quiz"});
 });
 app.get("/history",authenticateToken, async (req, res) => {
     const attempts = await Result.find({ userId: req.user.id })
@@ -281,7 +284,7 @@ app.post("/getOtp",async(req,res)=>{
         user.otp=newOtp
         getOtp(email,newOtp)
         await user.save();
-        res.json({success:true, message:"OTP sent to your mail verify to reset password.",email:email})
+        res.json({success:true, message:`otp sent to ${email}`,email:email})
     } catch (error) {res.status(200).json({success:false,message:`Server Error: ${error.message}`})};
 });
 app.post("/verifyOtp",async(req,res)=>{
@@ -300,6 +303,7 @@ app.post("/verifyOtp",async(req,res)=>{
 app.post("/updatePassword",async(req,res)=>{
     try {
         const {passEmail,newPass} = req.body;
+        if(!passEmail || !newPass) return res.json({ success:false,message: "Please provide all fields",email:passEmail,resetPass:true});
         const user = await User.findOne({email:passEmail});
         const isMatch = await compare(newPass, user.password);
         if(isMatch) return res.json({ success: false, message:"new password must not be same as old.",email:passEmail,resetPass:true})

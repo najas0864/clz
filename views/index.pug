@@ -1,15 +1,15 @@
 include ./components/head.pug
 body
   header
-    .logo 
-      h1 #{title || "Home"}
+    .logo
+      a(href="/index") 
+        h1 #{title || "Homes"}
     if email 
       p #{"Wellcome "+email.split("@")[0].toUpperCase()+"🖐" || "user"}
-    a#proIcon(href="/profile" title="Profile & Results") 👱‍♂️
+    a#proIcon(href="/profile" title="Profile & Results") 👤 
   main
     include ./components/nav.pug
     section 
-
       if data
         - const groups = {}
         each item in data
@@ -20,16 +20,18 @@ body
         .categoryItem
           each items, subject in groups
             .subjectBox
-              h3 #{subject} (#{items.length})
+              h5 #{subject} (#{items.length})
               ul
                 each it in items
                   a(href=`/subject/${it._id}`)
                     li= it.subject
-                      p By: #{it.email ? it.email.split("@")[0].toUpperCase() : "USER"}
+                      sub #{it.email ? " "+it.email.split("@")[0].toLowerCase():null}
       else 
         .news 
           center  
-            h3.notice News.
-          p Lorem ipsum dolor sit, amet consectetur adipisicing elit. Aperiam, similique.
-            | Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, corporis.
+            h3.notice INFORMATIONS
+          p Select your semester to view available quizzes<br>
+            | and try your best to score high.<br>
+            | Keep practcing to make your skill batter.<br>
+            | Stay tuned for updates and new quizzes!
   include ./components/footer.pug

@@ -20,13 +20,8 @@ export const getOtp = async (email,otp)=> {
       from: 'najas0864@gmail.com',
       to: email,
       subject: 'OTP Verification',
-      html: `
-        <h1>Your OTP is: ${otp}</h1>
-        <p>If you have not requested the otp please delete this email.</p>
-      `,
+      html: `<h1>Your OTP is: ${otp}</h1><p>If you have not requested the otp please delete this email.</p>`,
     });
     console.log(`Email sent to :${email} `);
-  } catch (error) {
-      console.log(`error sending email to ${email}: ${error.message}`);
-  }
+  } catch (error) {console.log(`error sending email to ${email}: ${error.message}`)}
 }

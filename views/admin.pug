@@ -1,8 +1,7 @@
 include ./components/head.pug
 body
   .headBar
-    a.goBack(href="/profile" title="Go Back to Profile Page") 
-      p
+    include ./components/back.pug
     p Teacher's Admin Page
   .boxCover
     .box
@@ -12,9 +11,9 @@ body
           option(value="" selected disabled) Select Subject below
         each q in [...Array(10).keys()]
           span
-            textarea(name=`q${q}_t` placeholder=`${q + 1} : Question` required)
+            textarea(name=`q${q}_t` placeholder=`${q + 1} : Question` required autocorrect="on" autocomplete="off" rows="2")
             each o in [...Array(4).keys()]
-              input(type="text" name=`q${q}_o${o}` placeholder=`Option ${o + 1}` required)
+              input(type="text" name=`q${q}_o${o}` placeholder=`Option ${o + 1}` required autocorrect="on" autocomplete="off")
             select(name=`q${q}_c` required autocomplete="off") 
               option(value="" selected disabled) ✔
               option(value="1") 1
