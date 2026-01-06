@@ -2,13 +2,14 @@ import express from "express";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { compare } from "bcryptjs";
+import cookieParser from "cookie-parser";
+import { isValidObjectId } from "mongoose";
+
+import { conectDB } from "./config/db.js";
+import { getOtp } from "./config/mail.js";
 import User from "./models/user.model.js";
 import Quiz from "./models/quiz.model.js";
-import { compare } from "bcryptjs";
-import { getOtp } from "./config/mail.js";
-import { conectDB } from "./config/db.js";
-import { isValidObjectId } from "mongoose";
-import cookieParser from "cookie-parser";
 import Result from "./models/ans.model.js";
 
 const app = express();
@@ -281,8 +282,9 @@ app.post("/getOtp",async(req,res)=>{
         const user = await User.findOne({email});
         if(!user) return res.json({success:false,message:'invalid Email.'})
         const newOtp = Math.floor(Math.random() * 900000) + 100000;
-        user.otp=newOtp
-        getOtp(email,newOtp)
+        const mailStatus = await getOtp(email, newOtp);
+        if (!mailStatus.success){return res.status(500).json({success: false,message: `Failed to send OTP email:${mailStatus.message}`,email:email})}
+        user.otp=newOtp;
         await user.save();
         res.json({success:true, message:`otp sent to ${email}`,email:email})
     } catch (error) {res.status(200).json({success:false,message:`Server Error: ${error.message}`})};
@@ -324,15 +326,6 @@ app.post("/logout",authenticateToken,(req, res) => {
     try {
         res.clearCookie(`session_${req.user.email.split("@")[0].toLowerCase()}`);
         res.render("auth", {title:"Authentication", message: "Logged out successfully" });
-    } catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
-});
-app.delete("/deleteUser/:id",authenticateToken,async (req,res) => {
-    // send mail to user about account deletion and confirm before deletion
-    try {
-        const { id } = req.params;
-        if (!isValidObjectId(id)) return res.status(404).json({ success: false, message: "Invalid user Id" });
-        await User.findByIdAndDelete(id);
-        res.status(200).json({ success: true, message: "user deleted" });
     } catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
 });
 app.use((req, res) => {res.status(404).render('404',{title:"Page not Found"});});

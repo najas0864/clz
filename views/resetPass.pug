@@ -15,11 +15,23 @@ body
       form.authForm(name="updatePass" action="/updatePassword" method="post")
         input#passEmail( name="passEmail" type="email" hidden)
         label(for="newPass") New Password:
+          span.tog Show
         input#newPass(required="" name="newPass" type="password" )
         button#resetPass(type="submit") Reset Password
       a(href="/") Go Back To Log-In
   script.
     document.addEventListener('DOMContentLoaded',()=>{
+      const passToggles = document.querySelector('.tog');
+      passToggles.addEventListener('click', (e) => {
+        const passwordInput = e.target.parentElement.nextElementSibling;
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          passToggles.innerHTML='Hide';
+        } else {
+          passwordInput.type = 'password';
+          passToggles.innerHTML='Show';
+        }
+      });
       function showMsg(success, message) {
         let popUp = document.createElement("span")
         popUp.innerText=message;
@@ -40,15 +52,11 @@ body
       rePassBtn.style="display:none;";
       let otp = document.getElementById("otp");
       otp.readOnly = true;
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,12}$/;
 
       document.forms.getOtp.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!emailRegex.test(reEmail.value.trim())) {
-          showMsg(false, "Enter a valid email");
-          return;
-        }
+        getOtpBtn.style = "pointer-events:none;background-color:darkgray;";
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
         const res = await fetch('/getOtp',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
@@ -65,16 +73,19 @@ body
           getOtpBtn.style="display:none;";
           showMsg(false, message)
         }else{
+          getOtpBtn.disabled = false;
           showMsg(success, message)
         }
       });
       document.forms.verifyOtp.addEventListener("submit", async (e) => {
         e.preventDefault();
+        verifyOtpBtn.style = "pointer-events:none;background-color:darkgray;";
         const formData = new FormData(e.target);
         const entries = Object.fromEntries(formData.entries());
         const res = await fetch('/verifyOtp',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
         const logResult = await res.json();
         const {message,success} = logResult;
+        verifyOtpBtn.disabled = true;
         if(success){
           rePassBtn.style="display:block;";
           otp.readOnly = true;
@@ -82,12 +93,14 @@ body
           verifyOtpBtn.style="display:none;";
           showMsg(false, message);
         }else{
+          verifyOtpBtn.disabled = false;
           showMsg(success, message);
         }
       });
       document.forms.updatePass.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!passwordRegex.test(rPass.value.trim())) {
+        rePassBtn.style = "pointer-events:none;background-color:darkgray;";
+        if (!passwordRegex.test(newPass.value.trim())) {
           showMsg(false, "Enter a valid password\nPassword must be\n-> 6-12 chars\n-> 1 uppercase\n -> 1 number\n -> 1 special char");
           return;
         }
@@ -96,12 +109,14 @@ body
         const res = await fetch('/updatePassword',{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
         const logResult = await res.json();
         const {message,success} = logResult;
+        rePassBtn.disabled = true;
         if(success){
           rePassBtn.type="button";
           document.forms.updatePass.reset();
           newPass.readOnly = true;
           showMsg(success, message);
         }else{
+          rePassBtn.disabled = false;
           showMsg(success, message);
         }
       });
