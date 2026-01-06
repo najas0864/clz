@@ -26,19 +26,16 @@ body
         document.querySelector('.outbtnDrop').classList.toggle('active');
         document.querySelector('.outBtn>svg').classList.toggle('active');
       });
-      const title = document.querySelector('.rTitle')
+      const title = document.querySelector('#rTitle')
       const res = await fetch('/history')
       const data = await res.json();
-      if(data.length === 0){
-        title.innerText = "No Quiz Taken Yet"
-        return;
-      }
+      if(data.length === 0) return title.innerHTML = "No quiz taken yet";
       data.forEach( a => {
         resultBox.innerHTML+=`
           <table>
             <tr>
               <th>Subject:</th>
-              <th> ${a.quizId?.subject}</th>
+              <th> ${a.quizId?.subject||"Removed"}</th>
             </tr>
             <tr>
               <th>Score:</th>
@@ -73,7 +70,7 @@ body
         document.querySelector(`button[onclick="deleteResult('${id}')"]`).closest('table').remove();
       };
       window.goToQuiz = async (id) =>{
-        if (!id) return alert("Quiz not found, it may have been removed by the teacher.");
+        if (id==="undefined") return alert("Quiz not found, it may have been removed by the teacher.");
         window.location.href=`/subject/${id}`;
       } 
     })

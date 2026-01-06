@@ -60,6 +60,7 @@ app.get("/auth",(req,res)=>{
 });
 app.get("/profile",authenticateToken, async (req,res)=>{
     const user = await User.findOne({ email: req.user.email });
+    if (!user) return res.render("auth", {title:"Authentication", message: "User not found" });
     const role = user.role==='teacher'?true:false;
     res.render("profile",{title:"Profile",isTeacher:role,info:req.user});
 });
@@ -245,6 +246,7 @@ app.post("/signUp",async (req,res)=>{
     const existingEmail = await User.findOne({email});
     if (existingEmail) return res.status(400).json({ success:false,message: "Email already in use!" });
     if (!email || !password || !role) return res.render("auth", { success:false,message: "Please provide all fields" });
+    const mailStatus = await getOtp(email, false);
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({email,password:hashedPassword,role});
     try {
@@ -286,7 +288,7 @@ app.post("/getOtp",async(req,res)=>{
         if (!mailStatus.success){return res.status(500).json({success: false,message: `Failed to send OTP email:${mailStatus.message}`,email:email})}
         user.otp=newOtp;
         await user.save();
-        res.json({success:true, message:`otp sent to ${email}`,email:email})
+        res.json({success:true, message:`OTP sent to ${email}`,email:email})
     } catch (error) {res.status(200).json({success:false,message:`Server Error: ${error.message}`})};
 });
 app.post("/verifyOtp",async(req,res)=>{

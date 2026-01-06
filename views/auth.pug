@@ -6,11 +6,11 @@ body
         center
           h3 Log-In
         label(for="email") Email:
-        input#email(required="" name="email" type="text" autoComplete="username")
+        input#email(required="" name="email" type="text" autoComplete="email")
         label(for="password") Password:
           span.tog Show
         input#password(required="true" name="password" type="password" autoComplete="current-password")
-        button(type="submit") Login
+        button#logInBtn(type="submit") Login
         span
           | Dont have an account?
           br
@@ -19,7 +19,7 @@ body
         center
           h3 Create new account
         label(for="newemail") Email:
-        input#newemail(required="" name="email" type="text" autoComplete="username")
+        input#newemail(required="" name="email" type="text" autoComplete="email")
         label(for="newPassword") New Password:
           span.tog Show
         input#newPassword( required="" name="password" type="password" autoComplete="new-password")
@@ -27,7 +27,7 @@ body
           option(value="" selected disabled) Select your role
           option(value="student") Student
           option(value="teacher") Teacher
-        button(type="submit") Register
+        button#regBtn(type="submit") Register
         span
           | Already have an account?
           a#links(href="#login") Login
