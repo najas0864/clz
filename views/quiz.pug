@@ -35,8 +35,15 @@ body
     script.
       const serverData  = !{JSON.stringify(data)};
       const isTeacher  = "#{isTeacher}";
+      const id = "#{data._id}";
       document.addEventListener("DOMContentLoaded", () => {
-        const id = "#{data._id}";
+        function showMsg(success, message) {
+          let popUp = document.createElement("span")
+          popUp.innerText=message;
+          popUp.classList.add("message");
+          setTimeout(() => { popUp.remove() }, 3000);
+          (!success)? document.body.append(popUp):window.location.href = "/index";
+        }
         if(isTeacher==="true"){
           document.forms.editQuiz.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -47,7 +54,7 @@ body
             const entries = Object.fromEntries(formData.entries());
             const res = await fetch(`/quiz/${serverData._id}`,{method: "POST",headers: {'Content-Type': 'application/json'},body:JSON.stringify(entries)});
             const result = await res.json();
-            if(result.success) window.location.href=`/admin/${serverData._id}`;
+            (result.success)? window.location.href=`/admin/${serverData._id}`: showMsg(result.success, result.message);
           });
           document.forms.deleteQuiz.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -55,7 +62,7 @@ body
             if(!con) return;
             const res = await fetch(`/quiz/${id}`,{method: "DELETE",headers: {'Content-Type': 'application/json'}});
             const result = await res.json();
-            if(result.success) window.location.href=`/index`;
+            (result.success)? window.location.href=`/index`: showMsg(result.success, result.message);
           });
         }
         document.forms.submitAns.addEventListener("submit", async (e) => {
@@ -89,7 +96,7 @@ body
           }else{ scoreBox[1].style="visibility: collapse;"; };
           scoreBox[2].innerText = `Re-Try 🔁`;
           scoreBox[2].style="visibility: visible;";
-          scoreBox[2].onclick=()=>{window.location.reload();}
+          scoreBox[2].onclick=()=>{window.location.reload()};
         });
       });
   else 

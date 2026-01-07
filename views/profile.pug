@@ -19,6 +19,7 @@ body
               button(type="submit") Log-Out
     .results 
   script.
+    const serverData  = !{JSON.stringify(data)};
     addEventListener("DOMContentLoaded",async () => {
       const resultBox = document.querySelector('.results')
       const outBtn = document.querySelector('.outBtn')
@@ -26,11 +27,8 @@ body
         document.querySelector('.outbtnDrop').classList.toggle('active');
         document.querySelector('.outBtn>svg').classList.toggle('active');
       });
-      const title = document.querySelector('#rTitle')
-      const res = await fetch('/history')
-      const data = await res.json();
-      if(data.length === 0) return title.innerHTML = "No quiz taken yet";
-      data.forEach( a => {
+      if(serverData.length === 0) return resultBox.innerHTML = "No quiz taken yet";
+      serverData.forEach( a => {
         resultBox.innerHTML+=`
           <table>
             <tr>

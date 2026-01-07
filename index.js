@@ -26,12 +26,10 @@ app.use(express.static("public"));
 
 // middleware////////////////////////////////////////////////////////////////////////////////////////////////////
 const authenticateToken = (req, res, next) => {
-    const sessionCookieName = Object.keys(req.cookies).find(name =>name.startsWith("session_"));
-    if (!sessionCookieName) return res.render("auth", {title: "Authentication",message: "Token expired"});
-    const token =  req.cookies[sessionCookieName];
-    if (!token) return res.render("auth", {title:"Authentication", message: "Token expired" });
+    const token = req.cookies.token;
+    if (!token) return res.render("auth",{ title:"Sign-Up or Log-In"});
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.render("auth", { title:"Authentication", message: `Invalid Token ${err.message}` });
+        if (err) return res.render("auth", { title:"Sign-Up or Log-In"});
         req.user = user;
         next();
     });
@@ -56,13 +54,13 @@ app.get("/resetPassword",(req,res)=>{
     res.render("resetPass",{title:"Reset Password"});
 });
 app.get("/auth",(req,res)=>{
-    res.render("auth",{title:"Authentication"});
+    res.render("auth",{title:"Sign-Up or Log-In"});
 });
 app.get("/profile",authenticateToken, async (req,res)=>{
     const user = await User.findOne({ email: req.user.email });
-    if (!user) return res.render("auth", {title:"Authentication", message: "User not found" });
-    const role = user.role==='teacher'?true:false;
-    res.render("profile",{title:"Profile",isTeacher:role,info:req.user});
+    const isTeacher = user.role==='teacher'? true : false;    
+    const attempts = await Result.find({ userId: req.user.id }).populate("quizId", "semester subject").sort({ createdAt: -1 });
+    res.render("profile",{title:"Profile",isTeacher,info:req.user,data:attempts});
 });
 app.get("/semester/:id",authenticateToken, async (req, res) => {
     const quizzes = await Quiz.find({}, { subject: 1 });
@@ -91,15 +89,9 @@ app.get("/subject/:id",authenticateToken, async (req, res) => {
 });
 app.get("/admin/:id",authenticateToken, async (req,res)=>{
     const quiz = await Quiz.findOne({ _id: req.params.id });
-    const user = await User.findOne({ email: quiz.email });
-    if (user.role !== 'teacher') return res.json({sucess:false, message: "Access denied. Teachers only." });
+    const user = await User.findOne({ email: req.user.email });
+    if (user.role !== 'teacher') return res.json({sucess:false, message: "Access denied!" });
     res.render("admin",{data:quiz, success:true, title:"Update Quiz"});
-});
-app.get("/history",authenticateToken, async (req, res) => {
-    const attempts = await Result.find({ userId: req.user.id })
-    .populate("quizId", "semester subject")
-    .sort({ createdAt: -1 });
-    res.json(attempts);
 });
 
 // post routes ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,6 +123,8 @@ app.post("/quiz",authenticateToken, async (req,res) => {
 app.post("/quiz/:id",authenticateToken,async (req,res) => {
     const quiz = req.body;
     const id = req.params.id;
+    const email = JSON.parse(quiz.data).email;
+    if(req.user.email!==email) return  res.json({sucess:false, message: "You are not authorized to edit this quiz!" });
     res.json({title:"Update Quiz", data:quiz,id:id, success:true});
 });
 app.put("/quiz/:id", authenticateToken, async (req, res) => {
@@ -157,7 +151,6 @@ app.put("/quiz/:id", authenticateToken, async (req, res) => {
         res.json({success: true,message: "Quiz updated successfully.",data: updatedQuiz});
     } catch (error) {res.status(500).json({success: false,message: `Server Error: ${error.message}`})}
 });
-
 app.delete("/quiz/:id",authenticateToken,async (req,res) => {
     const id = req.params.id;
     if (!isValidObjectId(id)) return res.status(404).json({ success: false, message: "Invalid Quiz Id" });
@@ -169,7 +162,6 @@ app.delete("/quiz/:id",authenticateToken,async (req,res) => {
             res.status(200).json({ success: false, message: "Error deleting Quiz!" })
     } catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
 });
-
 app.post("/submitAns",authenticateToken,async (req,res)=>{
     try {
         const id = req.body.id;
@@ -246,17 +238,17 @@ app.post("/signUp",async (req,res)=>{
     const existingEmail = await User.findOne({email});
     if (existingEmail) return res.status(400).json({ success:false,message: "Email already in use!" });
     if (!email || !password || !role) return res.render("auth", { success:false,message: "Please provide all fields" });
-    const mailStatus = await getOtp(email, false);
+    await getOtp(email, false);
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({email,password:hashedPassword,role});
     try {
         await newUser.save();
         const token = jwt.sign({ id:newUser._id,email: newUser.email, password: newUser.password }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.cookie(`session_${email.split("@")[0].toLowerCase()}`, token, {
+        res.cookie("token", token, {
             httpOnly: true,
             secure: false,
             sameSite: 'strict',
-            maxAge: 60 * 60 * 24000,
+            maxAge: new Date(Date.now() + 10*24*60*60*1000),
         });
         res.status(200).json({success:true,message:"User created sucessful"});
     } catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
@@ -269,11 +261,11 @@ app.post("/logIn",async (req,res)=>{
         const isMatch = await compare(password, user.password);
         if (!isMatch) { return res.json({success:false, message: "!!!Invalid password!!!" }) }
         const token =  jwt.sign({ id:user._id, email: user.email, password: user.password }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.cookie(`session_${email.split("@")[0].toLowerCase()}`, token, {
+        res.cookie("token", token, {
             httpOnly: true,
             secure: false,
             sameSite: 'strict',
-            maxAge: 60 * 60 * 24000,
+            maxAge: new Date(Date.now() + 10*24*60*60*1000),
         });
         res.status(200).json({success:true,message:"User log-in sucessful"});
     }  catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
@@ -315,19 +307,19 @@ app.post("/updatePassword",async(req,res)=>{
         user.password=hashedPassword;
         await user.save();
         const token =  jwt.sign({ id:user._id, email: user.email, password: user.password }, process.env.JWT_SECRET, { expiresIn: '24h' });
-        res.cookie(`session_${passEmail.split("@")[0].toLowerCase()}`, token, {
+        res.cookie("token", token, {
             httpOnly: true,
             secure: false,
             sameSite: 'strict',
-            maxAge: 60 * 60 * 24000,
+            maxAge: new Date(Date.now() + 10*24*60*60*1000),
         });
         res.json({ success: true, message:"password updated sucessfully"});
     } catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
 });
 app.post("/logout",authenticateToken,(req, res) => {
     try {
-        res.clearCookie(`session_${req.user.email.split("@")[0].toLowerCase()}`);
-        res.render("auth", {title:"Authentication", message: "Logged out successfully" });
+        res.clearCookie("token");
+        res.render("auth", {title:"Sign-Up or Log-In"});
     } catch (error) {res.status(500).json({success:false,message:`Server Error: ${error.message}`})};
 });
 app.use((req, res) => {res.status(404).render('404',{title:"Page not Found"});});
