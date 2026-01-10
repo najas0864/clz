@@ -141,6 +141,7 @@ button[type="submit"]:hover{
 .categoryItem{
     min-width: 160px;
     display: flex;
+    justify-content: space-evenly;
     flex-wrap: wrap;
     text-align: center;
     gap: 1rem;
@@ -148,6 +149,7 @@ button[type="submit"]:hover{
 .subjectBox{
     border: 1px solid #000;
     border-radius: 14px;
+    height: fit-content;
     padding: 1rem 2rem;
     background: rgba(255, 255, 255, 0.1);
 }
